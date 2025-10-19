@@ -1,5 +1,7 @@
 <br/>
 <br/>
+<br/>
+<br/>
 
 <Bilingual cn="这幅图画/照片/漫画, 毫无疑问地, 可以与影响大学生课程选择的多种因素联系起来.">this drawing/pictures/cartoon,apparently/evidently/obviously/definitely/with no doubt,can be associated/related/linked to with various/variety of/all kinds of/diverse factors which/that may influence/impact/affect college students'/undergraduate course option/selecting course/course selection.</Bilingual> <Bilingual cn="具体来说, 一个年轻人坐在选课系统前, 思考着两组不同的课程特点.">to be specific/specifically,a youngster sits before a course selection system,thinking about/pondering over two groups/sets of characteristics/features.</Bilingual> <Bilingual cn="左边的一组包括新知识, 强调创新精神, 以及更具挑战性的要求;">the left one includes new knowledge,emphasizing/valuing/focusing on innovation/creativity,and more difficulties/challenging requirement;</Bilingual> <Bilingual cn="而另一组则意味着可以轻松获得高分, 考试更容易通过, 并且家庭作业更少.">the other group involves/refers to easy access to high/good scores/grades,less difficulties in passing the test,and less homework.</Bilingual> <Bilingual cn="最后, 我们可以注意到几个汉字, 写着“又到选课时”.">finally,several chinese characters can be noticed,which say that it is time to choose electives.</Bilingual>
 
