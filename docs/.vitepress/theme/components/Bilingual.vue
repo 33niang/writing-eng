@@ -1,10 +1,10 @@
 <template>
   <span class="bilingual-container" ref="containerRef">
-    <span class="english-text" @click.stop="toggleChinese">
+    <span class="english-text" @click.stop="handleClick">
       <slot></slot>
     </span>
 
-    <span v-if="isChineseVisible" class="chinese-text" :class="popupPositionClass">
+    <span v-if="isChineseVisible" class="chinese-text" :class="popupPositionClass" ref="popupRef">
       {{ cn }}
     </span>
   </span>
@@ -12,7 +12,7 @@
 
 <script setup>
 import { ref, watch, onMounted, onUnmounted, nextTick, getCurrentInstance } from 'vue';
-import { activeBilingual } from '../store.js'; // 导入我们创建的共享状态
+import { activeBilingual } from '../store.js';
 
 const props = defineProps({
   cn: {
@@ -23,21 +23,30 @@ const props = defineProps({
 
 const isChineseVisible = ref(false);
 const containerRef = ref(null);
-const popupPositionClass = ref(''); // 用于控制弹窗位置 (上方或下方)
+const popupRef = ref(null); // 新增: 用于获取弹窗本身
+const popupPositionClass = ref('show-above'); // 默认在上方
 const instance = getCurrentInstance(); // 获取当前组件的唯一实例
 
-// 核心功能：切换中文翻译的显示
-const toggleChinese = () => {
-  const wasVisible = isChineseVisible.value;
-  
-  // 在显示任何翻译之前, 先告诉全局管理器, 当前这个组件要被激活了
-  // 管理器会自动关闭上一个打开的翻译
-  activeBilingual.setActive(instance.proxy);
-
-  isChineseVisible.value = !wasVisible;
+// 核心逻辑：处理点击事件
+const handleClick = () => {
+  if (isChineseVisible.value) {
+    // 如果当前翻译是打开的，就关闭它
+    hide();
+    activeBilingual.clearActive();
+  } else {
+    // 如果是关闭的，就打开它
+    show();
+  }
 };
 
-// 暴露一个 hide 方法, 供全局管理器调用
+// 显示翻译的逻辑
+const show = () => {
+  // 先通过全局管理器关闭其他任何已打开的翻译
+  activeBilingual.setActive(instance);
+  isChineseVisible.value = true;
+};
+
+// 隐藏翻译的逻辑 (暴露给外部调用)
 const hide = () => {
   isChineseVisible.value = false;
 };
@@ -47,84 +56,19 @@ defineExpose({ hide });
 // 监视翻译框的显示/隐藏状态
 watch(isChineseVisible, async (newValue) => {
   if (newValue) {
-    // 使用 nextTick 确保 DOM 元素已经渲染出来
+    // --- 智能定位逻辑 (已升级) ---
+    // 等待DOM更新，确保弹窗元素已创建
     await nextTick();
     
-    // --- 智能定位逻辑 ---
-    if (containerRef.value) {
-      const rect = containerRef.value.getBoundingClientRect();
-      // 如果英文文本距离视口顶部太近 (小于100像素), 就在下方显示
-      if (rect.top < 100) {
+    if (containerRef.value && popupRef.value) {
+      const containerRect = containerRef.value.getBoundingClientRect();
+      const popupHeight = popupRef.value.offsetHeight; // 获取弹窗的实际高度
+      const margin = 10; // 留一点边距
+
+      // 如果英文文本距离视口顶部的距离 < 弹窗高度 + 边距
+      // 这意味着弹窗显示在上方会超出屏幕
+      if (containerRect.top < popupHeight + margin) {
+        // 就切换到下方显示
         popupPositionClass.value = 'show-below';
       } else {
-        popupPositionClass.value = 'show-above';
-      }
-    }
-  } else {
-    popupPositionClass.value = '';
-  }
-});
-
-// 处理点击页面空白区域的逻辑
-const handleClickOutside = () => {
-  // 当点击外部时, 调用全局管理器来关闭当前激活的翻译
-  activeBilingual.clearActive();
-};
-
-
-// 在组件挂载时添加全局点击监听
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside);
-});
-
-// 在组件卸载时移除监听, 防止内存泄漏
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside);
-});
-</script>
-
-<style scoped>
-.bilingual-container {
-  position: relative;
-  display: inline;
-}
-
-.english-text {
-  cursor: pointer;
-  border-bottom: 1px dashed #999;
-  transition: background-color 0.2s;
-}
-.english-text:hover {
-  background-color: #f0f0f0;
-}
-
-.chinese-text {
-  position: absolute;
-  left: 0;
-  z-index: 10;
-  
-  /* 样式 */
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  padding: 10px 15px;
-  width: max-content;
-  max-width: 400px;
-  
-  /* 字体 */
-  font-size: 0.9em;
-  color: #333;
-  text-align: left;
-}
-
-/* 默认在上方显示 */
-.chinese-text.show-above {
-  bottom: 125%;
-}
-
-/* 在下方显示的样式 */
-.chinese-text.show-below {
-  top: 125%;
-}
-</style>
+        // 否则，在上方显示
