@@ -1,17 +1,17 @@
 <template>
-  <span class="bilingual-container" ref="containerRef">
-    <span class="english-text" @click.stop="handleClick">
+  <span class="bilingual-container" ref="bilingualRef">
+    <span class="english-text" @click.stop="toggleChinese">
       <slot></slot>
     </span>
-    <span v-if="isChineseVisible" class="chinese-text" :class="popupPositionClass" ref="popupRef">
+
+    <span v-if="isChineseVisible" class="chinese-text">
       {{ cn }}
     </span>
   </span>
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted, nextTick, getCurrentInstance } from 'vue';
-import { activeBilingual } from '../store.js';
+import { ref, watch, onUnmounted } from 'vue';
 
 const props = defineProps({
   cn: {
@@ -21,56 +21,28 @@ const props = defineProps({
 });
 
 const isChineseVisible = ref(false);
-const containerRef = ref(null);
-const popupRef = ref(null);
-const popupPositionClass = ref('show-above');
-const instance = getCurrentInstance();
+const bilingualRef = ref(null);
 
-const handleClick = () => {
-  if (isChineseVisible.value) {
-    hide();
-    activeBilingual.clearActive();
-  } else {
-    show();
+const toggleChinese = () => {
+  isChineseVisible.value = !isChineseVisible.value;
+};
+
+const handleClickOutside = (event) => {
+  if (bilingualRef.value && !bilingualRef.value.contains(event.target)) {
+    isChineseVisible.value = false;
   }
 };
 
-const show = () => {
-  activeBilingual.setActive(instance.proxy);
-  isChineseVisible.value = true;
-};
-
-const hide = () => {
-  isChineseVisible.value = false;
-};
-defineExpose({ hide });
-
-watch(isChineseVisible, async (newValue) => {
+watch(isChineseVisible, (newValue) => {
   if (newValue) {
-    await nextTick();
-    if (containerRef.value && popupRef.value) {
-      const containerRect = containerRef.value.getBoundingClientRect();
-      const popupHeight = popupRef.value.offsetHeight;
-      const margin = 10;
-      if (containerRect.top < popupHeight + margin) {
-        popupPositionClass.value = 'show-below';
-      } else {
-        popupPositionClass.value = 'show-above';
-      }
-    }
+    document.addEventListener('click', handleClickOutside);
+  } else {
+    document.removeEventListener('click', handleClickOutside);
   }
-});
-
-const handleGlobalClick = () => {
-  activeBilingual.clearActive();
-};
-
-onMounted(() => {
-  document.addEventListener('click', handleGlobalClick);
 });
 
 onUnmounted(() => {
-  document.removeEventListener('click', handleGlobalClick);
+  document.removeEventListener('click', handleClickOutside);
 });
 </script>
 
@@ -91,26 +63,18 @@ onUnmounted(() => {
 
 .chinese-text {
   position: absolute;
+  bottom: 120%;
   left: 0;
   z-index: 10;
-  background-color: white;
+  background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   padding: 10px 15px;
   width: max-content;
-  max-width: 450px;
+  max-width: 400px;
   font-size: 0.9em;
   color: #333;
   text-align: left;
-  line-height: 1.6;
-}
-
-.chinese-text.show-above {
-  bottom: 130%;
-}
-
-.chinese-text.show-below {
-  top: 130%;
 }
 </style>
