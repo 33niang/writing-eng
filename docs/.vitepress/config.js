@@ -4,9 +4,13 @@ export default {
   themeConfig: {
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Essays', link: '/essay/2018/major' } // 导航栏直接链接到第一篇文章
+      { text: 'Essays', link: '/essay/2018/major' }, // 导航栏链接到第一篇文章
+      // --- 新增模板导航 ---
+      { text: 'Templates (模板)', link: '/templates/minor/topic01' }
+      // --- 结束 ---
     ],
     sidebar: {
+      // --- 这是你原来的作文侧边栏 ---
       '/essay/': [
         {
           text: '2018', // 按年份分组
@@ -17,13 +21,23 @@ export default {
           ]
         }
         // 后续可以继续添加新的年份分组
-        // {
-        //   text: '2019',
-        //   items: [
-        //     { text: '大作文', link: '/essay/2019/major' }
-        //   ]
-        // }
+      ],
+      
+      // --- 这是新增的模板侧边栏 ---
+      '/templates/': [
+        {
+          text: '小作文 (Templates)',
+          // collapsed: false, // 如果你希望默认展开，可以取消这行注释
+          items: [
+            { text: 'Topic 01: 通知/告示', link: '/templates/minor/topic01' },
+            { text: 'Topic 02: 邮件 (建议)', link: '/templates/minor/topic02' },
+            { text: 'Topic 03: 邮件 (回复邀请)', link: '/templates/minor/topic03' },
+            { text: 'Topic 04: 邮件 (感谢)', link: '/templates/minor/topic04' }
+            // 以后你可以在这里继续添加
+          ]
+        }
       ]
+      // --- 结束 ---
     }
   }
 }
