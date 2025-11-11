@@ -11,7 +11,9 @@
 </template>
 
 <script setup>
-import { ref, watch, onUnmounted } from 'vue';
+import { ref } from 'vue';
+// 导入 store
+import { activeBilingual } from '../store.js';
 
 const props = defineProps({
   cn: {
@@ -21,29 +23,32 @@ const props = defineProps({
 });
 
 const isChineseVisible = ref(false);
-const bilingualRef = ref(null);
 
-const toggleChinese = () => {
-  isChineseVisible.value = !isChineseVisible.value;
-};
-
-const handleClickOutside = (event) => {
-  if (bilingualRef.value && !bilingualRef.value.contains(event.target)) {
+// 创建一个符合 store 要求的 "实例" 对象
+// store.js 的 setActive 需要一个包含 hide 方法的对象
+const componentInstance = {
+  hide: () => {
     isChineseVisible.value = false;
   }
 };
 
-watch(isChineseVisible, (newValue) => {
-  if (newValue) {
-    document.addEventListener('click', handleClickOutside);
+const toggleChinese = () => {
+  if (isChineseVisible.value) {
+    // 如果当前是打开的, 则关闭它
+    isChineseVisible.value = false;
+    // 并通知 store 当前没有激活的组件了
+    activeBilingual.clearActive();
   } else {
-    document.removeEventListener('click', handleClickOutside);
+    // 如果当前是关闭的, 则激活它
+    // store 会自动关闭上一个打开的组件
+    activeBilingual.setActive(componentInstance);
+    isChineseVisible.value = true;
   }
-});
+};
 
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside);
-});
+// --- 清理 ---
+// 下面这些 watch 和 onUnmounted 逻辑可以删掉了
+// 因为我们将使用一个全局的点击监听器来处理 "点击空白处关闭"
 </script>
 
 <style scoped>
